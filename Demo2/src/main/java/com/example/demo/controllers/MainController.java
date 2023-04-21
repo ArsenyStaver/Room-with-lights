@@ -4,9 +4,12 @@ import com.example.demo.Models.Post;
 import com.example.demo.controllers.repository.PostRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
 
 
 
@@ -24,9 +27,10 @@ public class MainController {
     }
 
 
+
 // worked version
     @PostMapping("/")
-    public String roomAdd(@RequestParam String name, @RequestParam("country") String country,Model model, HttpServletRequest request) {
+    public String roomAdd(@RequestParam String name, @RequestParam("country") String country,@RequestParam(required = false) Integer state, Model model, HttpServletRequest request) {
         String ipAddress = request.getHeader("X-FORWARDED-FOR");
         if (ipAddress == null) {
             ipAddress = request.getRemoteAddr();
@@ -34,15 +38,49 @@ public class MainController {
         System.out.println("User IP Address: " + ipAddress);
 
 
-        Post post = new Post(name, country);
+        Post post = new Post(name, country, 0);
+
         postRepository.save(post);
 
+        long id = post.getId();
 
-        long id = post.getId(); // Get the id of the newly created room
+
+
         return "redirect:/room/" + id; // Redirect the user to the room page with the specified id
 
     }
+
+    @PostMapping("/state")
+    public ResponseEntity<String> updateState(@RequestParam String stateJS, @RequestParam Long id, HttpServletRequest request) {
+        System.out.println("Received state: " + stateJS);
+        int stateJSINT = Integer.parseInt(stateJS);
+
+        System.out.println(stateJSINT);
+
+
+        Optional<Post> postOptional = postRepository.findById(id);
+        if(postOptional.isPresent()) {
+            Post post = postOptional.get();
+            Long generatedId = post.getId();
+            if(post.getState() == stateJSINT) {
+                System.out.println("State has not changed.");
+            } else {
+                post.setState(stateJSINT);
+                postRepository.save(post);
+                System.out.println("State updated successfully.");
+            }
+        } else {
+            System.out.println("Post not found.");
+        }
+
+        return ResponseEntity.ok("State updated successfully.");
+    }
+
+
 }
+
+
+
 
 
 //192.168.0.241:8081

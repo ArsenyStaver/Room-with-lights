@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <meta charset="UTF-8">
     <title>Your room</title>
     <style>
@@ -22,11 +23,11 @@
         opacity: 0;
         transition: opacity 0.3s ease-in-out;
       }
-      #myButton:checked ~ #mySquare-${roomId}::before {
+      #myButton:checked ~ #mySquare::before {
         background-color: black;
         opacity: 1;
       }
-      #myButton2:checked ~ #mySquare-${roomId}::before {
+      #myButton2:checked ~ #mySquare::before {
         background-color: yellow;
         opacity: 1;
       }
@@ -47,85 +48,61 @@
     <input type="radio" id="myButton2" name="button" value="on">
     <label for="myButton2">Turn on light</label><br><br>
 
+    <div id="state">xxx</div>
     <div id="mySquare"></div><br><br>
+
+
 </form>
+
 
 <a href="/">Back to the main page</a><br><br>
 <a href="/rooms">All rooms</a>
 
+
+
 <script>
-  // Get room ID from URL parameter
-  const urlParams = new URLSearchParams(window.location.search);
-  const roomId = urlParams.get('id');
-
-  // Get saved state from localStorage
-  const savedState = localStorage.getItem(`room-${roomId}-state`);
-
-  // Set initial state of radio buttons and square
-  if (savedState === 'on') {
-    document.getElementById("myButton2").checked = true;
-    document.getElementById("mySquare").classList.add("on");
-  } else if (savedState === 'off') {
-    document.getElementById("myButton").checked = true;
-    document.getElementById("mySquare").classList.remove("on");
-  }
-
-  // Save state to localStorage and send message to server on radio button change
-  const radioButtons = document.querySelectorAll('input[name="button"]');
-  const socket = new WebSocket("ws://" + location.host + "/socket");
-
-radioButtons.forEach((button) => {
-  button.addEventListener('change', (event) => {
-    const newState = event.target.value;
-    const currentRoomId = event.target.closest("form").getAttribute("data-room-id");
-    if (localStorage.getItem(`room-${currentRoomId}-state`) !== newState) {
-      localStorage.setItem(`room-${currentRoomId}-state`, newState);
-      socket.send(newState);
-    }
-    if (newState === "on") {
-      document.getElementById("mySquare").classList.add("on");
-    } else {
-      document.getElementById("mySquare").classList.remove("on");
-    }
-  });
-});
+    const url = window.location.href; // получить URL-адрес страницы
+    const id = url.substring(url.lastIndexOf('/') + 1); // получить идентификатор после последнего символа '/'
 
 
-  // Set initial state of radio buttons and square from server message
-  socket.onmessage = function(event) {
-    const data = event.data;
-    if (data === "on") {
-      document.getElementById("myButton2").checked = true;
-      document.getElementById("mySquare").classList.add("on");
-    } else if (data === "off") {
-      document.getElementById("myButton").checked = true;
-      document.getElementById("mySquare").classList.remove("on");
-    }
-  };
 
-  // Set initial state of radio buttons and square from saved value
-  const currentRoomId = document.getElementById("room-form").getAttribute("data-room-id");
-  if (currentRoomId === roomId) {
-    const savedState = localStorage.getItem(`room-${roomId}-state`);
-    if (savedState === 'on') {
-      document.getElementById("myButton2").checked = true;
-      document.getElementById("mySquare").classList.add("on");
-    } else if (savedState === 'off') {
-      document.getElementById("myButton").checked = true;
-      document.getElementById("mySquare").classList.remove("on");
-    }
-  }
-
-    window.addEventListener("beforeunload", function() {
-      const selectedValue = document.querySelector('input[name="button"]:checked').value;
-      const currentRoomId = document.getElementById('room-form').getAttribute("data-room-id");
-      localStorage.setItem(`room-${currentRoomId}-state`, selectedValue);
+  $(document).ready(function() {
+    $('#myButton2').click(function() {
+      stateJS = 1;
+      sendData(stateJS);
+      updateState();
     });
 
+    $('#myButton').click(function() {
+      stateJS = 0;
+      sendData(stateJS);
+      updateState();
+    });
+  });
+
+  function sendData(data) {
+    $.ajax({
+      type: 'POST',
+      url: '/state',
+      data: {stateJS: data, id:id}, // Изменение передаваемых данных
+      success: function(response) {
+        console.log(response);
+      },
+      error: function(jqXHR, textStatus, errorThrown) {
+        console.log(textStatus, errorThrown);
+      }
+    });
+  }
+
+  function updateState() {
+    $('#state').text(stateJS);
+    console.log('State updated: ' + stateJS);
+  }
 </script>
+
+
 
 
 </body>
 </html>
-
 

@@ -11,6 +11,19 @@ public class Post {
 
     private String roomNames, Countries;
 
+    private int state;
+
+
+    public int getState() {
+        return state;
+    }
+
+    public void setState(int state) {
+        this.state = state;
+    }
+
+
+
 
     public Long getId() {
         return id;
@@ -37,14 +50,20 @@ public class Post {
         Countries = countries;
     }
 
-    public Post(String roomNames, String Countries) {
+    public Post(String roomNames, String Countries, int state) {
         this.roomNames = roomNames;
         this.Countries = Countries;
+        this.state = state;
 
     }
 
     public Post() {
     }
+
+
+
+
+
 
 
 }

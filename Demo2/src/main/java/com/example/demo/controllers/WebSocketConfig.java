@@ -1,8 +1,6 @@
 package com.example.demo.controllers;
 
-
 import org.springframework.context.annotation.Configuration;
-import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketHandler;
@@ -10,7 +8,11 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.config.annotation.*;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
+
 import java.io.IOException;
+
+
+
 import java.util.HashSet;
 
 import java.util.Set;
@@ -52,9 +54,6 @@ public class WebSocketConfig implements WebSocketConfigurer {
     }
 
 }
-
-
-
 
 
 
