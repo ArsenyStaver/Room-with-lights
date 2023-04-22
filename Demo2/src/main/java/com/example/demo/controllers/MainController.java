@@ -27,10 +27,9 @@ public class MainController {
     }
 
 
-
-// worked version
+    // worked version
     @PostMapping("/")
-    public String roomAdd(@RequestParam String name, @RequestParam("country") String country,@RequestParam(required = false) Integer state, Model model, HttpServletRequest request) {
+    public String roomAdd(@RequestParam String name, @RequestParam("country") String country, @RequestParam(required = false) Integer state, Model model, HttpServletRequest request) {
         String ipAddress = request.getHeader("X-FORWARDED-FOR");
         if (ipAddress == null) {
             ipAddress = request.getRemoteAddr();
@@ -45,7 +44,6 @@ public class MainController {
         long id = post.getId();
 
 
-
         return "redirect:/room/" + id; // Redirect the user to the room page with the specified id
 
     }
@@ -55,30 +53,27 @@ public class MainController {
         System.out.println("Received state: " + stateJS);
         int stateJSINT = Integer.parseInt(stateJS);
 
-        System.out.println(stateJSINT);
-
-
         Optional<Post> postOptional = postRepository.findById(id);
-        if(postOptional.isPresent()) {
+        if (postOptional.isPresent()) {
             Post post = postOptional.get();
-            Long generatedId = post.getId();
-            if(post.getState() == stateJSINT) {
+            if (post.getState() == stateJSINT) {
                 System.out.println("State has not changed.");
             } else {
                 post.setState(stateJSINT);
                 postRepository.save(post);
                 System.out.println("State updated successfully.");
+
             }
+
         } else {
             System.out.println("Post not found.");
         }
 
-        return ResponseEntity.ok("State updated successfully.");
+        return ResponseEntity.ok("ok");
     }
 
 
 }
-
 
 
 

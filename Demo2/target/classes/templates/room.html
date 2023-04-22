@@ -42,14 +42,14 @@
 <body>
 <h3>Your room</h3>
 
-<form method="get" id="room-form">
+<form method="post" id="room-form">
     <input type="radio" id="myButton" name="button" value="off" checked>
     <label for="myButton">Turn off light</label>
     <input type="radio" id="myButton2" name="button" value="on">
     <label for="myButton2">Turn on light</label><br><br>
 
-    <div id="state">xxx</div>
-    <div id="mySquare"></div><br><br>
+    <div id="state"></div>
+    <div id="mySquare" class="${color}"></div><br><br>
 
 
 </form>
@@ -58,15 +58,15 @@
 <a href="/">Back to the main page</a><br><br>
 <a href="/rooms">All rooms</a>
 
-
-
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    const url = window.location.href; // получить URL-адрес страницы
-    const id = url.substring(url.lastIndexOf('/') + 1); // получить идентификатор после последнего символа '/'
+  const url = window.location.href; // получить URL-адрес страницы
+  const id = url.substring(url.lastIndexOf('/') + 1); // получить идентификатор после последнего символа '/'
 
-
-
+  // добавить блок кода для проверки состояния в базе данных и обновления отображения
   $(document).ready(function() {
+    updateState();
+
     $('#myButton2').click(function() {
       stateJS = 1;
       sendData(stateJS);
@@ -84,7 +84,7 @@
     $.ajax({
       type: 'POST',
       url: '/state',
-      data: {stateJS: data, id:id}, // Изменение передаваемых данных
+      data: {stateJS: data, id:id},
       success: function(response) {
         console.log(response);
       },
@@ -95,10 +95,82 @@
   }
 
   function updateState() {
-    $('#state').text(stateJS);
-    console.log('State updated: ' + stateJS);
+    $.ajax({
+      type: 'GET',
+      url: '/room/' + id,
+      success: function(response) {
+        var state = parseInt(response);
+        console.log('State updated: ' + state);
+        $('#state').text('Состояние: ' + state);
+        if (state === 1) {
+          $('#mySquare::before').css('opacity', '1');
+        } else {
+          $('#mySquare::before').css('opacity', '0');
+        }
+      },
+      error: function(jqXHR, textStatus, errorThrown) {
+        console.log(textStatus, errorThrown);
+      }
+    });
   }
 </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!--<script>-->
+<!--    const url = window.location.href; // получить URL-адрес страницы-->
+<!--    const id = url.substring(url.lastIndexOf('/') + 1); // получить идентификатор после последнего символа '/'-->
+
+
+
+<!--  $(document).ready(function() {-->
+<!--    $('#myButton2').click(function() {-->
+<!--      stateJS = 1;-->
+<!--      sendData(stateJS);-->
+<!--      updateState();-->
+<!--    });-->
+
+<!--    $('#myButton').click(function() {-->
+<!--      stateJS = 0;-->
+<!--      sendData(stateJS);-->
+<!--      updateState();-->
+<!--    });-->
+<!--  });-->
+
+<!--  function sendData(data) {-->
+<!--    $.ajax({-->
+<!--      type: 'POST',-->
+<!--      url: '/state',-->
+<!--      data: {stateJS: data, id:id}, // Изменение передаваемых данных-->
+<!--      success: function(response) {-->
+<!--        console.log(response);-->
+<!--      },-->
+<!--      error: function(jqXHR, textStatus, errorThrown) {-->
+<!--        console.log(textStatus, errorThrown);-->
+<!--      }-->
+<!--    });-->
+<!--  }-->
+
+<!--  function updateState() {-->
+<!--    $('#state').text(stateJS);-->
+<!--    console.log('State updated: ' + stateJS);-->
+<!--  }-->
+<!--</script>-->
+
+
 
 
 
