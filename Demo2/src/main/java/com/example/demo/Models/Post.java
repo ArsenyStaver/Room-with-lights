@@ -2,29 +2,19 @@ package com.example.demo.Models;
 
 import jakarta.persistence.*;
 
+//Аннотация, которая указывает, что это класс сущности, который будет отображаться в таблице в базы данных
 @Entity
 public class Post {
 
+//@Id - аннотация, которая указывает, что это поле является идентификатором записи в базе данных
+//@GeneratedValue - аннотация, которая указывает, как генерировать значения для поля id
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     private String roomNames, Countries;
 
-    private int state;
-
-
-    public int getState() {
-        return state;
-    }
-
-    public void setState(int state) {
-        this.state = state;
-    }
-
-
-
-
+    //Геттеры и сеттеры
     public Long getId() {
         return id;
     }
@@ -50,20 +40,14 @@ public class Post {
         Countries = countries;
     }
 
-    public Post(String roomNames, String Countries, int state) {
+    public Post(String roomNames, String Countries) {
         this.roomNames = roomNames;
         this.Countries = Countries;
-        this.state = state;
+
 
     }
 
     public Post() {
     }
-
-
-
-
-
-
 
 }

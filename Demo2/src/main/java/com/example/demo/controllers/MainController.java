@@ -4,78 +4,50 @@ import com.example.demo.Models.Post;
 import com.example.demo.controllers.repository.PostRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
 
 
-
+// Аннотация, которая указывает, что это класс контроллера
 @Controller
 public class MainController {
 
+    // Аннотация, которая указывает на то, что Spring должен автоматически внедрить зависимость PostRepository в этот класс
     @Autowired
     private PostRepository postRepository;
 
-
+    // Обработчик GET запроса для страницы "/"
     @GetMapping("/")
     public String test(Model model) {
         model.addAttribute("test");
         return "test";
     }
 
-
-    // worked version
+    // Обработчик POST запроса для добавления новой записи в базу данных
     @PostMapping("/")
-    public String roomAdd(@RequestParam String name, @RequestParam("country") String country, @RequestParam(required = false) Integer state, Model model, HttpServletRequest request) {
+    // RequestParam-Аннотация, которая указывает на параметры запроса, переданные через URL
+    //Model model - параметр, представляющий модель данных для передачи данных между контроллером и представлением
+    //HttpServletRequest request - параметр, представляющий HTTP-запрос, который был отправлен клиентом
+    public String roomAdd(@RequestParam String name, @RequestParam("country") String country, Model model, HttpServletRequest request) {
+        // Получаем IP-адрес пользователя
         String ipAddress = request.getHeader("X-FORWARDED-FOR");
         if (ipAddress == null) {
             ipAddress = request.getRemoteAddr();
         }
         System.out.println("User IP Address: " + ipAddress);
 
-
-        Post post = new Post(name, country, 0);
-
+        // Создаем новую запись и сохраняем ее в базе данных
+        Post post = new Post(name, country);
         postRepository.save(post);
 
+        // Получаем ID новой записи и перенаправляем пользователя на страницу этой записи
         long id = post.getId();
-
-
-        return "redirect:/room/" + id; // Redirect the user to the room page with the specified id
-
+        return "redirect:/room/" + id;
     }
-
-    @PostMapping("/state")
-    public ResponseEntity<String> updateState(@RequestParam String stateJS, @RequestParam Long id, HttpServletRequest request) {
-        System.out.println("Received state: " + stateJS);
-        int stateJSINT = Integer.parseInt(stateJS);
-
-        Optional<Post> postOptional = postRepository.findById(id);
-        if (postOptional.isPresent()) {
-            Post post = postOptional.get();
-            if (post.getState() == stateJSINT) {
-                System.out.println("State has not changed.");
-            } else {
-                post.setState(stateJSINT);
-                postRepository.save(post);
-                System.out.println("State updated successfully.");
-
-            }
-
-        } else {
-            System.out.println("Post not found.");
-        }
-
-        return ResponseEntity.ok("ok");
-    }
-
-
 }
 
 
 
 
-//192.168.0.241:8081

@@ -1,11 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <meta charset="UTF-8">
-    <title>Your room</title>
+    <title>Room</title>
     <style>
-      #mySquare{
+#mySquare{
         width: 100px;
         height: 100px;
         background-color: black;
@@ -37,144 +35,113 @@
       #mySquare.off {
         background-color: black;
       }
-  </style>
+    </style>
 </head>
 <body>
 <h3>Your room</h3>
 
-<form method="post" id="room-form">
+<form method="post" id="room-form" data-room-id="${id}">
     <input type="radio" id="myButton" name="button" value="off" checked>
     <label for="myButton">Turn off light</label>
     <input type="radio" id="myButton2" name="button" value="on">
     <label for="myButton2">Turn on light</label><br><br>
 
-    <div id="state"></div>
-    <div id="mySquare" class="${color}"></div><br><br>
 
-
+    <div id="mySquare"></div><br>
 </form>
-
 
 <a href="/">Back to the main page</a><br><br>
 <a href="/rooms">All rooms</a>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
 <script>
-  const url = window.location.href; // РїРѕР»СѓС‡РёС‚СЊ URL-Р°РґСЂРµСЃ СЃС‚СЂР°РЅРёС†С‹
-  const id = url.substring(url.lastIndexOf('/') + 1); // РїРѕР»СѓС‡РёС‚СЊ РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ РїРѕСЃР»Рµ РїРѕСЃР»РµРґРЅРµРіРѕ СЃРёРјРІРѕР»Р° '/'
+  // Получаем ID комнаты из параметра URL
 
-  // РґРѕР±Р°РІРёС‚СЊ Р±Р»РѕРє РєРѕРґР° РґР»СЏ РїСЂРѕРІРµСЂРєРё СЃРѕСЃС‚РѕСЏРЅРёСЏ РІ Р±Р°Р·Рµ РґР°РЅРЅС‹С… Рё РѕР±РЅРѕРІР»РµРЅРёСЏ РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ
-  $(document).ready(function() {
-    updateState();
+  const roomId = window.location.pathname.split('/').pop();
 
-    $('#myButton2').click(function() {
-      stateJS = 1;
-      sendData(stateJS);
-      updateState();
-    });
+  // Получаем сохраненное состояние из localStorage
+  const savedState = localStorage.getItem(`room-${roomId}-state`);
 
-    $('#myButton').click(function() {
-      stateJS = 0;
-      sendData(stateJS);
-      updateState();
+  // Устанавливаем начальное состояние радиокнопок и квадрата
+  if (savedState === 'on') {
+    document.getElementById("myButton2").checked = true;
+    document.getElementById("mySquare").classList.add("on");
+  } else if (savedState === 'off') {
+    document.getElementById("myButton").checked = true;
+    document.getElementById("mySquare").classList.remove("on");
+  }
+
+  // Сохраняем состояние в localStorage и отправляем сообщение на сервер при изменении радиокнопок
+  // Получаем все радиокнопки на странице
+  const radioButtons = document.querySelectorAll('input[name="button"]');
+  // Создаем новое WebSocket-соединение на сервере
+  const socket = new WebSocket("ws://" + window.location.host + "/socket?room=" + roomId);
+
+  // Добавляем обработчик изменения состояния радиокнопок
+  radioButtons.forEach((button) => {
+    button.addEventListener('change', (event) => {
+      const newState = event.target.value;
+      const currentRoomId = event.target.closest("form").getAttribute("data-room-id");
+      // Проверяем, изменилось ли сохраненное состояние и отправляем сообщение на сервер
+      if (localStorage.getItem(`room-${currentRoomId}-state`) !== newState) {
+        localStorage.setItem(`room-${currentRoomId}-state`, newState);
+        socket.send(newState);
+      }
+      // Изменяем состояние квадрата на странице на основе выбранной радиокнопки
+      if (newState === "on") {
+        document.getElementById("mySquare").classList.add("on");
+      } else {
+        document.getElementById("mySquare").classList.remove("on");
+      }
     });
   });
 
-  function sendData(data) {
-    $.ajax({
-      type: 'POST',
-      url: '/state',
-      data: {stateJS: data, id:id},
-      success: function(response) {
-        console.log(response);
-      },
-      error: function(jqXHR, textStatus, errorThrown) {
-        console.log(textStatus, errorThrown);
-      }
-    });
+  // Устанавливаем начальное состояние радиокнопок и квадрата на основе сообщения от сервера
+  socket.onmessage = function(event) {
+    const data = event.data;
+    if (data === "on") {
+      document.getElementById("myButton2").checked = true;
+      document.getElementById("mySquare").classList.add("on");
+    } else if (data === "off") {
+      document.getElementById("myButton").checked = true;
+      document.getElementById("mySquare").classList.remove("on");
+    }
+  };
+
+  // Устанавливаем начальное состояние радиокнопок и квадрата на основе сохраненного значения
+  const currentRoomId = document.getElementById("room-form").getAttribute("data-room-id");
+  if (currentRoomId === roomId) {
+    const savedState = localStorage.getItem(`room-${roomId}-state`);
+    if (savedState === 'on') {
+      document.getElementById("myButton2").checked = true;
+      document.getElementById("mySquare").classList.add("on");
+    } else if (savedState === 'off') {
+      document.getElementById("myButton").checked = true;
+      document.getElementById("mySquare").classList.remove("on");
+    }
   }
 
-  function updateState() {
-    $.ajax({
-      type: 'GET',
-      url: '/room/' + id,
-      success: function(response) {
-        var state = parseInt(response);
-        console.log('State updated: ' + state);
-        $('#state').text('РЎРѕСЃС‚РѕСЏРЅРёРµ: ' + state);
-        if (state === 1) {
-          $('#mySquare::before').css('opacity', '1');
-        } else {
-          $('#mySquare::before').css('opacity', '0');
-        }
-      },
-      error: function(jqXHR, textStatus, errorThrown) {
-        console.log(textStatus, errorThrown);
-      }
-    });
-  }
+  // Устанавливаем начальное состояние радиокнопок и квадрата на основе сохраненного значения при загрузке страницы
+  window.addEventListener("load", function() {
+    const savedState = localStorage.getItem(`room-${roomId}-state`);
+    if (savedState === 'on') {
+      document.getElementById("myButton2").checked = true;
+      document.getElementById("mySquare").classList.add("on");
+    } else if (savedState === 'off') {
+      document.getElementById("myButton").checked = true;
+      document.getElementById("mySquare").classList.remove("on");
+    }
+  });
+
+  // Сохраняем состояние в localStorage при выходе из комнаты
+  window.addEventListener("beforeunload", function() {
+    const selectedValue = document.querySelector('input[name="button"]:checked').value;
+    const currentRoomId = document.getElementById('room-form').getAttribute("data-room-id");
+    localStorage.setItem(`room-${roomId}-state`, selectedValue);
+  });
+
 </script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<!--<script>-->
-<!--    const url = window.location.href; // РїРѕР»СѓС‡РёС‚СЊ URL-Р°РґСЂРµСЃ СЃС‚СЂР°РЅРёС†С‹-->
-<!--    const id = url.substring(url.lastIndexOf('/') + 1); // РїРѕР»СѓС‡РёС‚СЊ РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ РїРѕСЃР»Рµ РїРѕСЃР»РµРґРЅРµРіРѕ СЃРёРјРІРѕР»Р° '/'-->
-
-
-
-<!--  $(document).ready(function() {-->
-<!--    $('#myButton2').click(function() {-->
-<!--      stateJS = 1;-->
-<!--      sendData(stateJS);-->
-<!--      updateState();-->
-<!--    });-->
-
-<!--    $('#myButton').click(function() {-->
-<!--      stateJS = 0;-->
-<!--      sendData(stateJS);-->
-<!--      updateState();-->
-<!--    });-->
-<!--  });-->
-
-<!--  function sendData(data) {-->
-<!--    $.ajax({-->
-<!--      type: 'POST',-->
-<!--      url: '/state',-->
-<!--      data: {stateJS: data, id:id}, // РР·РјРµРЅРµРЅРёРµ РїРµСЂРµРґР°РІР°РµРјС‹С… РґР°РЅРЅС‹С…-->
-<!--      success: function(response) {-->
-<!--        console.log(response);-->
-<!--      },-->
-<!--      error: function(jqXHR, textStatus, errorThrown) {-->
-<!--        console.log(textStatus, errorThrown);-->
-<!--      }-->
-<!--    });-->
-<!--  }-->
-
-<!--  function updateState() {-->
-<!--    $('#state').text(stateJS);-->
-<!--    console.log('State updated: ' + stateJS);-->
-<!--  }-->
-<!--</script>-->
-
-
-
-
-
 
 </body>
 </html>
-
