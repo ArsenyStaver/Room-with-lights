@@ -6,13 +6,15 @@ import jakarta.persistence.*;
 @Entity
 public class Post {
 
-//@Id - аннотация, которая указывает, что это поле является идентификатором записи в базе данных
-//@GeneratedValue - аннотация, которая указывает, как генерировать значения для поля id
+    //@Id - аннотация, которая указывает, что это поле является идентификатором записи в базе данных
+    //@GeneratedValue - аннотация, которая указывает, как генерировать значения для поля id
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     private String roomNames, Countries;
+
+
 
     //Геттеры и сеттеры
     public Long getId() {
@@ -43,7 +45,6 @@ public class Post {
     public Post(String roomNames, String Countries) {
         this.roomNames = roomNames;
         this.Countries = Countries;
-
 
     }
 

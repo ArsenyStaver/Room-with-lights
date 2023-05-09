@@ -4,6 +4,7 @@ import com.example.demo.Models.Post;
 import com.example.demo.controllers.repository.PostRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -46,6 +47,7 @@ public class MainController {
         long id = post.getId();
         return "redirect:/room/" + id;
     }
+
 }
 
 
